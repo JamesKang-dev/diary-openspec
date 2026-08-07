@@ -1,5 +1,7 @@
 const STORAGE_KEY = "diary-entries";
 
+let editingId = null;
+
 function formatDate(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -19,7 +21,11 @@ function loadEntries() {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((entry, index) => ({
+      ...entry,
+      id: entry.id ?? `legacy-${index}`,
+    }));
   } catch {
     return [];
   }
@@ -46,12 +52,86 @@ function renderEntries(entries) {
   for (const entry of sorted) {
     const li = document.createElement("li");
     li.className = "text-sm border-b border-slate-100 pb-2";
-    li.innerHTML = `
-      <span class="text-slate-400">${entry.date} ${entry.time}</span>
-      <span class="block text-slate-800">${entry.text}</span>
-    `;
+    li.dataset.id = entry.id;
+
+    if (entry.id === editingId) {
+      const meta = document.createElement("span");
+      meta.className = "text-slate-400";
+      meta.textContent = `${entry.date} ${entry.time}`;
+
+      const editRow = document.createElement("div");
+      editRow.className = "flex gap-2 mt-1";
+
+      const editInput = document.createElement("input");
+      editInput.type = "text";
+      editInput.value = entry.text;
+      editInput.className =
+        "flex-1 border border-slate-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400";
+      editInput.dataset.role = "edit-input";
+
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.textContent = "저장";
+      saveBtn.className = "text-xs bg-slate-800 text-white rounded px-2 py-1 hover:bg-slate-700";
+      saveBtn.addEventListener("click", () => handleEditSave(entry.id, editInput.value));
+
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.textContent = "취소";
+      cancelBtn.className = "text-xs bg-slate-200 text-slate-700 rounded px-2 py-1 hover:bg-slate-300";
+      cancelBtn.addEventListener("click", () => handleEditCancel());
+
+      editRow.append(editInput, saveBtn, cancelBtn);
+      li.append(meta, editRow);
+    } else {
+      const meta = document.createElement("span");
+      meta.className = "text-slate-400";
+      meta.textContent = `${entry.date} ${entry.time}`;
+
+      const textRow = document.createElement("div");
+      textRow.className = "flex items-start justify-between gap-2";
+
+      const textSpan = document.createElement("span");
+      textSpan.className = "text-slate-800";
+      textSpan.textContent = entry.text;
+
+      const editBtn = document.createElement("button");
+      editBtn.type = "button";
+      editBtn.textContent = "수정";
+      editBtn.className = "text-xs text-slate-500 hover:text-slate-800 shrink-0";
+      editBtn.addEventListener("click", () => handleEditStart(entry.id));
+
+      textRow.append(textSpan, editBtn);
+      li.append(meta, textRow);
+    }
+
     listEl.appendChild(li);
   }
+}
+
+function handleEditStart(id) {
+  editingId = id;
+  renderEntries(loadEntries());
+}
+
+function handleEditCancel() {
+  editingId = null;
+  renderEntries(loadEntries());
+}
+
+function handleEditSave(id, newText) {
+  const text = newText.trim();
+  if (!text) return;
+
+  const entries = loadEntries();
+  const target = entries.find((entry) => entry.id === id);
+  if (!target) return;
+
+  target.text = text;
+  saveEntries(entries);
+
+  editingId = null;
+  renderEntries(entries);
 }
 
 function handleSubmit(event) {
@@ -62,6 +142,7 @@ function handleSubmit(event) {
 
   const now = new Date();
   const entry = {
+    id: crypto.randomUUID(),
     date: formatDate(now),
     time: formatTime(now),
     text,
