@@ -86,7 +86,13 @@ function renderEntries(entries) {
     } else {
       const meta = document.createElement("span");
       meta.className = "text-slate-400";
-      meta.textContent = `${entry.date} ${entry.time}`;
+      meta.textContent = `작성: ${entry.date} ${entry.time}`;
+
+      const updatedMeta = document.createElement("span");
+      updatedMeta.className = "block text-slate-400 text-xs";
+      updatedMeta.textContent = entry.updatedAt
+        ? `최종 수정: ${formatDate(new Date(entry.updatedAt))} ${formatTime(new Date(entry.updatedAt))}`
+        : "수정한 내역이 없습니다.";
 
       const textRow = document.createElement("div");
       textRow.className = "flex items-start justify-between gap-2";
@@ -102,7 +108,7 @@ function renderEntries(entries) {
       editBtn.addEventListener("click", () => handleEditStart(entry.id));
 
       textRow.append(textSpan, editBtn);
-      li.append(meta, textRow);
+      li.append(meta, updatedMeta, textRow);
     }
 
     listEl.appendChild(li);
@@ -127,6 +133,9 @@ function handleEditSave(id, newText) {
   const target = entries.find((entry) => entry.id === id);
   if (!target) return;
 
+  if (text !== target.text.trim()) {
+    target.updatedAt = Date.now();
+  }
   target.text = text;
   saveEntries(entries);
 
