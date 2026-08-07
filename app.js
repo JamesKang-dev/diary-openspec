@@ -74,6 +74,7 @@ function handleSubmit(event) {
 
   inputEl.value = "";
   renderEntries(entries);
+  document.getElementById("entry-list").scrollTop = 0;
 }
 
 function init() {
