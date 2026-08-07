@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>한 줄 다이어리</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-start justify-center py-12">
+  <main class="w-full max-w-md bg-white rounded-xl shadow p-6 space-y-6">
+    <header class="text-center">
+      <p id="today" class="text-slate-500 text-sm"></p>
+      <h1 class="text-xl font-semibold text-slate-800">한 줄 다이어리</h1>
+    </header>
+
+    <form id="entry-form" class="flex gap-2">
+      <input
+        id="entry-input"
+        type="text"
+        placeholder="오늘 한 줄을 남겨보세요"
+        class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        autocomplete="off"
+      />
+      <button
+        type="submit"
+        class="bg-slate-800 text-white text-sm rounded-lg px-4 py-2 hover:bg-slate-700"
+      >
+        저장
+      </button>
+    </form>
+
+    <section>
+      <h2 class="text-sm font-medium text-slate-600 mb-2">최근 기록</h2>
+      <ul id="entry-list" class="h-56 overflow-y-auto space-y-2 pr-1"></ul>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
